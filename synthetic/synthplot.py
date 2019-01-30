@@ -1,6 +1,7 @@
 import numpy as np
 
 from matplotlib import pyplot as plt
+plt.switch_backend('agg')
 from mpl_toolkits.mplot3d import Axes3D
 
 

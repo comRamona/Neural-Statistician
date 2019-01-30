@@ -184,7 +184,7 @@ class Statistician(nn.Module):
         optimizer.step()
 
         # output variational lower bound
-        return vlb.data[0]
+        return vlb.data.item()
 
     def save(self, optimizer, path):
         torch.save({
