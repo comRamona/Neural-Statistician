@@ -56,6 +56,9 @@ parser.add_argument('--save_interval', type=int, default=-1,
 parser.add_argument('--clip-gradients', type=bool, default=True,
                     help='whether to clip gradients to range [-0.5, 0.5] '
                          '(default: True)')
+parser.add_argument('--show-plots', type=bool, default=False,
+                    help='Display figues instead of saving '
+                         '(default: False)')
 args = parser.parse_args()
 assert args.output_dir is not None
 os.makedirs(os.path.join(args.output_dir, 'checkpoints'), exist_ok=True)
@@ -65,7 +68,7 @@ os.makedirs(os.path.join(args.output_dir, 'figures'), exist_ok=True)
 time_stamp = time.strftime("%d-%m-%Y-%H:%M:%S")
 
 
-def run(model, optimizer, loaders, datasets):
+def run(model, optimizer, loaders, datasets, show_plots=False):
     train_dataset, test_dataset = datasets
     train_loader, test_loader = loaders
     test_batch = next(iter(test_loader))
@@ -102,6 +105,8 @@ def run(model, optimizer, loaders, datasets):
             samples = model.sample_conditioned(inputs)
             filename = time_stamp + '-{}.png'.format(epoch + 1)
             save_path = os.path.join(args.output_dir, 'figures/' + filename)
+            if show_plots:
+                save_path = None
             grid(inputs, samples, save_path=save_path, ncols=10)
 
         # checkpoint model at intervals
@@ -159,7 +164,7 @@ def main():
     model.cuda()
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
 
-    run(model, optimizer, loaders, datasets)
+    run(model, optimizer, loaders, datasets, args.show_plots)
 
 
 if __name__ == '__main__':

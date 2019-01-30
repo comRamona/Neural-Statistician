@@ -10,6 +10,7 @@ from torch.autograd import Variable
 from torch.nn import functional as F
 from torch.utils import data
 from tqdm import tqdm
+import torch
 
 # command line args
 parser = argparse.ArgumentParser(description='Neural Statistician Synthetic Experiment')
@@ -66,6 +67,10 @@ parser.add_argument('--save_interval', type=int, default=-1,
 parser.add_argument('--clip-gradients', type=bool, default=True,
                     help='whether to clip gradients to range [-0.5, 0.5] '
                          '(default: True)')
+parser.add_argument('--show_plots', type=bool, default=False,
+                    help='Display figues insteaf of saving '
+                         '(default: False)')
+
 args = parser.parse_args()
 assert args.output_dir is not None
 os.makedirs(os.path.join(args.output_dir, 'checkpoints'), exist_ok=True)
@@ -75,7 +80,7 @@ os.makedirs(os.path.join(args.output_dir, 'figures'), exist_ok=True)
 time_stamp = time.strftime("%d-%m-%Y-%H:%M:%S")
 
 
-def run(model, optimizer, loaders, datasets):
+def run(model, optimizer, loaders, datasets, show_plots=False):
     train_loader, test_loader = loaders
     train_dataset, test_dataset = datasets
 
@@ -119,12 +124,16 @@ def run(model, optimizer, loaders, datasets):
             # show coloured by mean
             path = args.output_dir + '/figures/' + time_stamp \
                    + '-{}-mean.pdf'.format(epoch + 1)
+            if show_plots:
+                savepath = None
             contexts_by_moment(contexts, moments=test_dataset.data['means'],
                                savepath=path)
 
             # show coloured by variance
             path = args.output_dir + '/figures/' + time_stamp \
                    + '-{}-variance.pdf'.format(epoch + 1)
+            if show_plots:
+                savepath = None
             contexts_by_moment(contexts, moments=test_dataset.data['variances'],
                                savepath=path)
 
@@ -187,7 +196,7 @@ def main():
     model.cuda()
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
 
-    run(model, optimizer, loaders, datasets)
+    run(model, optimizer, loaders, datasets, args.show_plots)
 
 
 if __name__ == '__main__':
