@@ -106,7 +106,8 @@ def run(model, optimizer, loaders, datasets):
             model.eval()
             contexts = []
             for batch in test_loader:
-                inputs = Variable(batch.cuda(), volatile=True)
+                with torch.no_grad():
+                    inputs = Variable(batch.cuda())
                 context_means, _ = model.statistic_network(inputs)
                 contexts.append(context_means.data.cpu().numpy())
 

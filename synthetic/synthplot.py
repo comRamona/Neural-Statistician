@@ -27,8 +27,8 @@ def scatter_contexts(contexts, labels, distributions, savepath=None):
         ax.scatter(contexts[i][:, 0], contexts[i][:, 1], contexts[i][:, 2],
                    label=distributions[label].title(),
                    color=colors[label])
-    plt.tick_params(axis='both', which='both', bottom='off', top='off', labelbottom='off',
-                    right='off', left='off', labelleft='off')
+    plt.tick_params(axis='both', which='both', bottom=False, top=False, labelbottom=False,
+                    right=False, left=False, labelleft=False)
     plt.legend(loc='upper left')
     plt.tight_layout()
 
@@ -45,8 +45,8 @@ def contexts_by_moment(contexts, moments, savepath=None):
                      c=moments[:len(contexts)])
     fig.colorbar(cax)
 
-    plt.tick_params(axis='both', which='both', bottom='off', top='off', labelbottom='off',
-                    right='off', left='off', labelleft='off')
+    plt.tick_params(axis='both', which='both', bottom=False, top=False, labelbottom=False,
+                    right=False, left=False, labelleft=False)
     plt.tight_layout()
 
     if savepath is not None:

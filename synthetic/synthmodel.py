@@ -201,7 +201,7 @@ class Statistician(nn.Module):
     @staticmethod
     def weights_init(m):
         if isinstance(m, nn.Linear):
-            init.xavier_normal(m.weight.data, gain=init.calculate_gain('relu'))
-            init.constant(m.bias.data, 0)
+            init.xavier_normal_(m.weight.data, gain=init.calculate_gain('relu'))
+            init.constant_(m.bias.data, 0)
         elif isinstance(m, nn.BatchNorm1d):
             pass
