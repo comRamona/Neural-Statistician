@@ -1,3 +1,9 @@
+
+```
+conda install pytorch
+conda install torchvision -c pytorch 
+```
+
 # Neural Statistician
 
 ## About
