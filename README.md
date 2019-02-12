@@ -1,3 +1,8 @@
+## About
+
+This repo contains our experiments and extensions based on the model outlined in [Towards a Neural Statistician (Edwards & Storkey, ICLR 2017)](https://arxiv.org/abs/1606.02185).
+The base PyTorch implementation is provided by https://github.com/conormdurkan/neural-statistician Copyright (c) 2017-2018 Conor Durkan.
+
 
 ```
 conda install pytorch
@@ -5,9 +10,6 @@ conda install torchvision -c pytorch
 ```
 
 # Neural Statistician
-
-## About
-This repo contains a PyTorch implementation of the model outlined in [Towards a Neural Statistician (Edwards & Storkey, ICLR 2017)](https://arxiv.org/abs/1606.02185). All models are close approximations of those listed in the paper and should yield comparable results.
 
 The code was written using Python 3.6, and currently works only with a GPU setup. Package requirements should be easy to handle using Conda and/or pip.
 
