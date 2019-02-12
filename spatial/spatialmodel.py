@@ -183,7 +183,7 @@ class Statistician(nn.Module):
         optimizer.step()
 
         # output variational lower bound
-        return vlb.data[0]
+        return vlb.data.item()
 
     def save(self, optimizer, save_path):
         torch.save({
@@ -244,7 +244,7 @@ class Statistician(nn.Module):
                 # calculate approximate posterior over subset
                 c_mean, c_logvar = self.statistic_network(subset, summarize=True)
                 kl = kl_diagnormal_diagnormal(c_mean_full, c_logvar_full, c_mean, c_logvar)
-                kl_divergences.append(kl.data[0])
+                kl_divergences.append(kl.data.item())
 
             # determine which sample we want to remove
             best_index = kl_divergences.index(min(kl_divergences))
