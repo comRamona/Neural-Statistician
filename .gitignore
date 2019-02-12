@@ -7,4 +7,11 @@ scratch.py
 
 *.m
 *.pdf
+*.gz
+*.pkl
+*.pt
 
+mnist-data/
+omniglot-data/
+results/
+output*

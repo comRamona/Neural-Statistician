@@ -186,7 +186,7 @@ class Statistician(nn.Module):
         optimizer.step()
 
         # output variational lower bound
-        return vlb.data[0]
+        return vlb.item()
 
     def sample_conditioned(self, inputs):
         h = self.shared_convolutional_encoder(inputs)

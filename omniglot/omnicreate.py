@@ -2,16 +2,43 @@ import argparse
 import numpy as np
 import os
 import pickle
+import sys
+from urllib.request import urlretrieve
+
+from downloading import download_file
 
 from scipy.io import loadmat
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--data-dir', required=True, type=str, default=None)
+parser.add_argument('--mnist-data-dir', required=True, type=str, default=None)
 args = parser.parse_args()
-assert (args.data_dir is not None) and (os.path.isdir(args.data_dir))
+assert (args.data_dir is not None) 
+if not os.path.exists(args.data_dir):
+    os.makedirs(args.data_dir)
+if not os.path.exists(args.mnist_data_dir):
+    os.makedirs(args.mnist_data_dir)
+omniglot_source = "https://github.com/yburda/iwae/raw/master/datasets/OMNIGLOT/"
+omniglot_file_name = "chardata.mat"
+mnist_file_names = ['train-images-idx3-ubyte.gz', 'train-labels-idx1-ubyte.gz', 
+                    't10k-images-idx3-ubyte.gz', 't10k-labels-idx1-ubyte.gz']
+mnist_source = "http://yann.lecun.com/exdb/mnist/"
 
-
+def reporthook(blocknum, blocksize, totalsize):
+    readsofar = blocknum * blocksize
+    if totalsize > 0:
+        percent = readsofar * 1e2 / totalsize
+        s = "\r%5.1f%% %*d / %d" % (
+            percent, len(str(totalsize)), readsofar, totalsize)
+        sys.stderr.write(s)
+        if readsofar >= totalsize: # near the end
+            sys.stderr.write("\n")
+    else: # total size is unknown
+        sys.stderr.write("read %d\n" % (readsofar,))
+                   
 def load():
+    # download if needed
+    download_file(omniglot_source, args.data_dir, "chardata.mat")                     
     # load data
     file = os.path.join(args.data_dir, 'chardata.mat')
     data = loadmat(file)
@@ -67,9 +94,13 @@ def save(data):
 
 
 def main():
+    #download omniglot
     data = load()
     modified_data = modify(data)
     save(modified_data)
+    #download mnist
+    for f in mnist_file_names:
+        download_file(mnist_source, args.mnist_data_dir, f)
 
 if __name__ == '__main__':
     main()
