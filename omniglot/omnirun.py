@@ -10,6 +10,7 @@ from torch.autograd import Variable
 from torch.nn import functional as F
 from torch.utils import data
 from tqdm import tqdm
+import torch
 
 # command line args
 parser = argparse.ArgumentParser(description='Neural Statistician Synthetic Experiment')
@@ -106,14 +107,16 @@ def run(model, optimizer, loaders, datasets):
             # unseen Omniglot
             filename = time_stamp + '-grid-{}.png'.format(epoch + 1)
             save_path = os.path.join(args.output_dir, 'figures/' + filename)
-            inputs = Variable(test_batch.cuda(), volatile=True)
+            with torch.no_grad():
+                inputs = Variable(test_batch.cuda())
             samples = model.sample_conditioned(inputs)
             save_test_grid(inputs, samples, save_path)
 
             # unseen MNIST
             filename = time_stamp + '-mnist-grid-{}.png'.format(epoch + 1)
             save_path = os.path.join(args.output_dir, 'figures/' + filename)
-            inputs = Variable(mnist_test_batch.cuda(), volatile=True)
+            with torch.no_grad():
+                inputs = Variable(mnist_test_batch.cuda())
             samples = model.sample_conditioned(inputs)
             save_test_grid(inputs, samples, save_path)
 
