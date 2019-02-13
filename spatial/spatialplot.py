@@ -1,4 +1,5 @@
 from matplotlib import pyplot as plt
+plt.switch_backend('agg')
 
 
 def grid(inputs, samples, summaries=None, save_path=None, ncols=10):
