@@ -139,7 +139,7 @@ class PostPool(nn.Module):
     def __init__(self, n_hidden, hidden_dim, c_dim, nonlinearity):
         super(PostPool, self).__init__()
         self.n_hidden = n_hidden
-        self.hidden_dim = hidden_dim
+        self.hidden_dim = hidden_dim + 1
         self.c_dim = c_dim
 
         self.nonlinearity = nonlinearity
@@ -199,14 +199,14 @@ class StatisticNetwork(nn.Module):
 
     def forward(self, h):
         e = self.prepool(h)
-        # e = self.sample_dropout(e)
+        e = self.sample_dropout(e)
         e = self.pool(e)
         e = self.postpool(e)
         return e
 
     def pool(self, e):
-        e = e.view(self.batch_size, self.sample_size, self.hidden_dim)
-        e = e.mean(1).view(self.batch_size, self.hidden_dim)
+        e = e.view(self.batch_size, self.sample_size, self.hidden_dim + 1)
+        e = e.mean(1).view(self.batch_size, self.hidden_dim + 1)
         return e
 
     def sample_dropout(self, e):
@@ -222,14 +222,21 @@ class StatisticNetwork(nn.Module):
         e = e * mask.expand_as(e)
 
         # take mean across sample dimension
-        extra_feature = torch.sum(mask, 1)
-        e = torch.sum(e, 1)
-        e /= extra_feature.expand_as(e)
-
+#         extra_feature = torch.sum(mask, 1)
+#         e = torch.sum(e, 1)
+#         e /= extra_feature.expand_as(e)
+        #print(e)
         # add number of retained samples as extra feature
-        e = torch.cat([e, extra_feature], 2).squeeze(1)
+        #e = torch.cat([e, extra_feature], 2)
+        #print(e)
+        #.squeeze(1)
 
-        return e
+        #return e
+        e = e * mask.expand_as(e)
+        extra_feature = torch.sum(mask, 1)
+        extra_feature  = extra_feature.repeat(1, self.sample_size).unsqueeze(2)
+        cc = torch.cat([e, extra_feature], 2)
+        return cc
 
 
 class InferenceNetwork(nn.Module):

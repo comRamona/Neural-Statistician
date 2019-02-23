@@ -1,9 +1,10 @@
 import gzip
 import numpy as np
+import random
 import os
 import pickle
 import torch
-
+from skimage.morphology import dilation, square
 from skimage.transform import rotate
 from torch.utils import data
 
@@ -106,12 +107,14 @@ class OmniglotSetsDataset(data.Dataset):
         n_sets = len(augmented)
 
         for s in range(n_sets):
-            flip_horizontal = np.random.choice([0, 1])
-            flip_vertical = np.random.choice([0, 1])
-            if flip_horizontal:
-                augmented[s] = augmented[s, :, :, ::-1]
-            if flip_vertical:
-                augmented[s] = augmented[s, :, ::-1, :]
+            op = np.random.choice([0,1,2])
+            if op == 0:
+                augmented[s] = augmented[s, :, :, ::-1] #flip horizontal
+            elif op == 1:
+                augmented[s] = augmented[s, :, ::-1, :] # flip vertical
+            else:
+                a = augmented[s]                        # augment
+                augmented[s] = dilation(a).astype(a.dtype)
 
         for s in range(n_sets):
             angle = np.random.uniform(0, 360)
