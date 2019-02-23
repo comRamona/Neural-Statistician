@@ -217,24 +217,14 @@ class StatisticNetwork(nn.Module):
                                                      self.sample_size - 1, 1)).cuda()))
         mask = torch.cat([a, b], 1)
 
-        # zero out samples
         e = e.view(self.batch_size, self.sample_size, self.hidden_dim)
+        # zero out samples
         e = e * mask.expand_as(e)
-
-        # take mean across sample dimension
-#         extra_feature = torch.sum(mask, 1)
-#         e = torch.sum(e, 1)
-#         e /= extra_feature.expand_as(e)
-        #print(e)
-        # add number of retained samples as extra feature
-        #e = torch.cat([e, extra_feature], 2)
-        #print(e)
-        #.squeeze(1)
-
-        #return e
-        e = e * mask.expand_as(e)
+        
         extra_feature = torch.sum(mask, 1)
         extra_feature  = extra_feature.repeat(1, self.sample_size).unsqueeze(2)
+        
+        # add number of retained samples as extra feature
         cc = torch.cat([e, extra_feature], 2)
         return cc
 

@@ -61,6 +61,8 @@ parser.add_argument('--save_interval', type=int, default=-1,
 parser.add_argument('--clip-gradients', type=bool, default=True,
                     help='whether to clip gradients to range [-0.5, 0.5] '
                          '(default: True)')
+parser.add_argument('--sample-seen', type=bool, default=False)
+
 args = parser.parse_args()
 assert args.output_dir is not None
 os.makedirs(os.path.join(args.output_dir, 'checkpoints'), exist_ok=True)
@@ -69,6 +71,23 @@ os.makedirs(os.path.join(args.output_dir, 'figures'), exist_ok=True)
 # experiment start time
 time_stamp = time.strftime("%d-%m-%Y-%H:%M:%S")
 
+
+#samples from same classes it was trained on, as a sanity check
+def sample_seen(model, optimizer, loaders, datasets):
+    filename = "outputdilate4/checkpoints/15-02-2019-03:43:01-400.m"
+    checkpoint = torch.load(filename)
+    model.load_state_dict(checkpoint['model_state'])
+    optimizer.load_state_dict(checkpoint['optimizer_state'])
+    model.eval()
+    train_dataset, test_dataset = datasets
+    train_loader, test_loader = loaders
+    test_batch = next(iter(train_loader))
+    with torch.no_grad():
+        inputs = Variable(test_batch.cuda())
+    samples = model.sample_conditioned(inputs)
+    save_path = os.path.join(args.output_dir, 'figures/' + "test.png")
+    save_test_grid(inputs, samples, save_path)
+    
 
 def run(model, optimizer, loaders, datasets):
     train_dataset, test_dataset = datasets
@@ -157,11 +176,16 @@ def main():
         'nonlinearity': F.elu,
         'print_vars': args.print_vars
     }
+#     if args.sample_seen:
+#         model_kwargs['hidden_dim_statistic'] = hidden_dim_statistic + 1
+#         n_features = 257 * 4 * 4
     model = Statistician(**model_kwargs)
     model.cuda()
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
-
-    run(model, optimizer, loaders, datasets)
+    if args.sample_seen:
+        sample_seen(model, optimizer, loaders, datasets)
+    else:
+        run(model, optimizer, loaders, datasets)
 
 
 if __name__ == '__main__':
