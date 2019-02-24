@@ -67,6 +67,7 @@ def load_mnist_test_batch(data_dir, batch_size):
 
 class OmniglotSetsDataset(data.Dataset):
     def __init__(self, data_dir, sample_size=5, split='train', augment=False):
+        self.split = split
         self.sample_size = sample_size
         path = os.path.join(data_dir, 'train_val_test_split.pkl')
         with open(path, 'rb') as file:
@@ -84,19 +85,25 @@ class OmniglotSetsDataset(data.Dataset):
         elif split == 'test':
             images, labels = splits[4:]
             sets, set_labels = self.make_sets(images, labels)
+        elif split == "kshot":
+            sets, set_labels = splits[4:]
         else:
             "Unrecognized split, returning None."
             sets, set_labels = None, None
-        sets = sets.reshape(-1, 5, 1, 28, 28)
+        if split != "kshot":
+            sets = sets.reshape(-1, 5, 1, 28, 28)
 
         self.n = len(sets)
         self.data = {
             'inputs': sets,
             'targets': set_labels
         }
-
+        
     def __getitem__(self, item):
-        return self.data['inputs'][item]
+        if self.split == "kshot":
+            return (self.data['inputs'][item], self.data['targets'][item])
+        else:
+            return self.data['inputs'][item]
 
     def __len__(self):
         return self.n
