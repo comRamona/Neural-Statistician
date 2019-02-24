@@ -139,7 +139,7 @@ class PostPool(nn.Module):
     def __init__(self, n_hidden, hidden_dim, c_dim, nonlinearity):
         super(PostPool, self).__init__()
         self.n_hidden = n_hidden
-        self.hidden_dim = hidden_dim 
+        self.hidden_dim = hidden_dim + 1
         self.c_dim = c_dim
 
         self.nonlinearity = nonlinearity
@@ -199,20 +199,24 @@ class StatisticNetwork(nn.Module):
 
     def forward(self, h, summarize=False, single_sample=False):
         e = self.prepool(h)
-        #e = self.sample_dropout(e)
+        if summarize or single_sample:
+            ef = Variable(torch.ones(e.shape[0],1).cuda())
+            e = torch.cat([e, ef], -1)
+        else:
+            e = self.sample_dropout(e)
         e = self.pool(e, summarize, single_sample)
         e = self.postpool(e)
         return e
 
     def pool(self, e, summarize=False, single_sample=False):
         if summarize:
-            e = e.view(1, -1, self.hidden_dim)
+            e = e.view(1, -1, self.hidden_dim + 1)
         else:
             if single_sample:
-                e = e.view(-1, 1, self.hidden_dim)
+                e = e.view(-1, 1, self.hidden_dim + 1)
             else:
-                e = e.view(-1, self.sample_size, self.hidden_dim)
-        e = e.mean(1).view(-1, self.hidden_dim )
+                e = e.view(-1, self.sample_size, self.hidden_dim + 1)
+        e = e.mean(1).view(-1, self.hidden_dim + 1)
         return e
 
     def sample_dropout(self, e):
@@ -221,14 +225,15 @@ class StatisticNetwork(nn.Module):
         p = 0.5 if self.training else 1
         b = Variable(torch.bernoulli(p * torch.ones((self.batch_size,
                                                      self.sample_size - 1, 1)).cuda()))
-        mask = torch.cat([a, b], 1)
+        mask = a if single_sample else torch.cat([a, b], 1)
+        sample_size = 1 if single_sample else self.sample_size
 
-        e = e.view(self.batch_size, self.sample_size, self.hidden_dim)
+        e = e.view(self.batch_size, sample_size, self.hidden_dim)
         # zero out samples
         e = e * mask.expand_as(e)
         
         extra_feature = torch.sum(mask, 1)
-        extra_feature  = extra_feature.repeat(1, self.sample_size).unsqueeze(2)
+        extra_feature  = extra_feature.repeat(1, sample_size).unsqueeze(2)
         
         # add number of retained samples as extra feature
         cc = torch.cat([e, extra_feature], 2)
