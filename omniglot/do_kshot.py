@@ -2,6 +2,7 @@ import argparse
 import os
 import time
 from collections import Counter
+import logging
 
 from omnidata import load_mnist
 from omnimodel import Statistician
@@ -162,9 +163,8 @@ def do_kshot(dataset="mnist", K=10, support=1, n_trials=100, n_test_samples=1):
                     kl_divergences.append(kl.data.item())
                 best_index = kl_divergences.index(min(kl_divergences))
                 preds.append(best_index)
-                
         acc = np.mean(np.array(preds) == x_labels)
-        print(acc)
+        logging.info(acc)
         accs.append(acc)
     return accs
 
@@ -173,7 +173,8 @@ def do_kshot(dataset="mnist", K=10, support=1, n_trials=100, n_test_samples=1):
 dataset = "omniglot"
 for support in [1, 5]:
     for K in [5,20]:
-        print("************************")
-        print("OMNIGLOT {}-Shot {}-Way".format(support, K))
+        logging.info("************************")
+        logging.info("OMNIGLOT {}-Shot {}-Way".format(support, K))
         accs = do_kshot(dataset="omniglot", K=K, support=support, n_test_samples=20, n_trials=100)
-        print("k-shot: {}".format(np.mean(accs)))
+        logging.info("OMNIGLOT {}-Shot {}-Way".format(support, K))
+        logging.info("k-shot: {}".format(np.mean(accs)))
