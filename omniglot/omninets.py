@@ -139,7 +139,7 @@ class PostPool(nn.Module):
     def __init__(self, n_hidden, hidden_dim, c_dim, nonlinearity):
         super(PostPool, self).__init__()
         self.n_hidden = n_hidden
-        self.hidden_dim = hidden_dim + 1
+        self.hidden_dim = hidden_dim 
         self.c_dim = c_dim
 
         self.nonlinearity = nonlinearity
@@ -197,16 +197,22 @@ class StatisticNetwork(nn.Module):
         self.postpool = PostPool(self.n_hidden, self.hidden_dim,
                                  self.c_dim, self.nonlinearity)
 
-    def forward(self, h):
+    def forward(self, h, summarize=False, single_sample=False):
         e = self.prepool(h)
-        e = self.sample_dropout(e)
-        e = self.pool(e)
+        #e = self.sample_dropout(e)
+        e = self.pool(e, summarize, single_sample)
         e = self.postpool(e)
         return e
 
-    def pool(self, e):
-        e = e.view(self.batch_size, self.sample_size, self.hidden_dim + 1)
-        e = e.mean(1).view(self.batch_size, self.hidden_dim + 1)
+    def pool(self, e, summarize=False, single_sample=False):
+        if summarize:
+            e = e.view(1, -1, self.hidden_dim)
+        else:
+            if single_sample:
+                e = e.view(-1, 1, self.hidden_dim)
+            else:
+                e = e.view(-1, self.sample_size, self.hidden_dim)
+        e = e.mean(1).view(-1, self.hidden_dim )
         return e
 
     def sample_dropout(self, e):
