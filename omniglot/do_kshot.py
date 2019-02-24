@@ -170,5 +170,10 @@ def do_kshot(dataset="mnist", K=10, support=1, n_trials=100, n_test_samples=1):
 
 # accs_1 = mnist_one_shot(support=1, n_test_samples=10, n_trials=100)
 # print("1-shot: {}".format(np.mean(accs_1)))
-accs_5 = do_kshot(dataset="omniglot", K=5, support=1, n_test_samples=20, n_trials=1)
-print("5-shot: {}".format(np.mean(accs_5)))
+dataset = "omniglot"
+for support in [1, 5]:
+    for K in [5,20]:
+        print("************************")
+        print("OMNIGLOT {}-Shot {}-Way".format(support, K))
+        accs = do_kshot(dataset="omniglot", K=K, support=support, n_test_samples=20, n_trials=100)
+        print("k-shot: {}".format(np.mean(accs)))
