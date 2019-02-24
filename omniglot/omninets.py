@@ -225,8 +225,8 @@ class StatisticNetwork(nn.Module):
         p = 0.5 if self.training else 1
         b = Variable(torch.bernoulli(p * torch.ones((self.batch_size,
                                                      self.sample_size - 1, 1)).cuda()))
-        mask = a if single_sample else torch.cat([a, b], 1)
-        sample_size = 1 if single_sample else self.sample_size
+        mask = torch.cat([a, b], 1)
+        sample_size = self.sample_size
 
         e = e.view(self.batch_size, sample_size, self.hidden_dim)
         # zero out samples
@@ -237,6 +237,7 @@ class StatisticNetwork(nn.Module):
         
         # add number of retained samples as extra feature
         cc = torch.cat([e, extra_feature], 2)
+        cc = cc * mask.expand_as(cc)
         return cc
 
 
