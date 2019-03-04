@@ -60,8 +60,8 @@ class fake_model():
     def __init__(self):
         pass
     def sent_embedding(self, vect):
-        c1 = np.mean(np.empty((50, 300)), 0)[:50]
-        v1 = np.var(np.log(np.random.random((5,300))),0)[:50]
+        c1 = np.mean(np.random.random((50, 300)), 0)[:50]
+        v1 = np.var(np.log(np.random.random((50,300))),0)[:50]
         return np.concatenate([c1,v1])
     
 #model = fake_model()    
