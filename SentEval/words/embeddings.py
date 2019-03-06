@@ -9,7 +9,7 @@ import sys
 from urllib.request import urlretrieve
 import numpy as np
 from nltk import word_tokenize
-import pdb
+#import pdb
 class GloveMatrix(object):
     """
     Downloads and loads GloVe matrix.
