@@ -22,23 +22,29 @@ parser.add_argument('--output-dir', required=True, type=str, default=None,
 # optional
 parser.add_argument('--batch-size', type=int, default=100,
                     help='batch size (of datasets) for training (default: 100)')
+
+parser.add_argument('--n-stochastic', type=int, default=3,
+                    help='number of z variables in hierarchy (default: 3)')
+parser.add_argument('--z-dim', type=int, default=16,
+                    help='dimension of z variables (default: 16)')
 parser.add_argument('--c-dim', type=int, default=512,
                     help='dimension of c variables (default: 512)')
+
+
 parser.add_argument('--n-hidden-statistic', type=int, default=3,
                     help='number of hidden layers in statistic network modules '
                          '(default: 3)')
 parser.add_argument('--hidden-dim-statistic', type=int, default=512,
                     help='dimension of hidden layers in statistic network (default: 512)')
-parser.add_argument('--n-stochastic', type=int, default=3,
-                    help='number of z variables in hierarchy (default: 3)')
-parser.add_argument('--z-dim', type=int, default=16,
-                    help='dimension of z variables (default: 16)')
 parser.add_argument('--n-hidden', type=int, default=3,
                     help='number of hidden layers in modules outside statistic network '
                          '(default: 3)')
 parser.add_argument('--hidden-dim', type=int, default=512,
                     help='dimension of hidden layers in modules outside statistic network '
                          '(default: 512)')
+
+
+
 parser.add_argument('--print-vars', type=bool, default=False,
                     help='whether to print all trainable parameters for sanity check '
                          '(default: False)')
