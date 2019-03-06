@@ -73,8 +73,8 @@ os.makedirs(os.path.join(args.output_dir, 'figures'), exist_ok=True)
 time_stamp = time.strftime("%d-%m-%Y-%H:%M:%S")
 
 def run(model, optimizer, loaders, datasets, show_plots=False):
-    train_dataset, test_dataset = datasets
-    train_loader, test_loader = loaders
+    train_dataset = datasets
+    train_loader = loaders
 
     viz_interval = args.epochs if args.viz_interval == -1 else args.viz_interval
     save_interval = args.epochs if args.save_interval == -1 else args.save_interval
@@ -89,9 +89,9 @@ def run(model, optimizer, loaders, datasets, show_plots=False):
         # train step
         model.train()
         running_vlb = 0
-        for batch in train_loader:
+        for batch, sample_size in train_loader:
             inputs = Variable(batch.cuda())
-            vlb = model.step(inputs, alpha, optimizer, clip_gradients=args.clip_gradients)
+            vlb = model.step(inputs, alpha, optimizer, clip_gradients=args.clip_gradients, sample_size)
             running_vlb += vlb
 
         running_vlb /= (len(train_dataset) // args.batch_size)
@@ -106,22 +106,17 @@ def run(model, optimizer, loaders, datasets, show_plots=False):
 
 def main():
     train_dataset = WikipediaDataset(data_dir=args.data_dir, split='train')
-    test_dataset = WikipediaDataset(data_dir=args.data_dir, split='test')
-    datasets = (train_dataset, test_dataset)
+    datasets = train_dataset
 
     train_loader = data.DataLoader(dataset=train_dataset, batch_size=args.batch_size,
                                    shuffle=True, num_workers=0, drop_last=True)
 
-    test_loader = data.DataLoader(dataset=test_dataset, batch_size=args.batch_size,
-                                  shuffle=True, num_workers=0, drop_last=True)
-    loaders = (train_loader, test_loader)
+    loaders = train_loader
 
     # hardcoded sample_size and n_features when making Spatial MNIST dataset
-    sample_size =  # sentence length mode
     n_features = 300 # n-dimensional word embedding vectors
     model_kwargs = {
         'batch_size': args.batch_size,
-        'sample_size': sample_size,
         'n_features': n_features,
         'c_dim': args.c_dim,
         'n_hidden_statistic': args.n_hidden_statistic,

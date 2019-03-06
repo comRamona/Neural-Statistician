@@ -133,11 +133,10 @@ class StatisticNetwork(nn.Module):
 
     """
 
-    def __init__(self, batch_size, sample_size, n_features,
+    def __init__(self, batch_size, n_features,
                  n_hidden, hidden_dim, c_dim, nonlinearity):
         super(StatisticNetwork, self).__init__()
         self.batch_size = batch_size
-        self.sample_size = sample_size
         self.n_features = n_features
 
         self.n_hidden = n_hidden
@@ -169,11 +168,10 @@ class InferenceNetwork(nn.Module):
 
     """
 
-    def __init__(self, batch_size, sample_size, n_features,
+    def __init__(self, batch_size, n_features,
                  n_hidden, hidden_dim, c_dim, z_dim, nonlinearity):
         super(InferenceNetwork, self).__init__()
         self.batch_size = batch_size
-        self.sample_size = sample_size
         self.n_features = n_features
 
         self.n_hidden = n_hidden
@@ -208,7 +206,7 @@ class InferenceNetwork(nn.Module):
         if z is not None:
             ez = z.view(-1, self.z_dim)
             ez = self.fc_z(ez)
-            ez = ez.view(self.batch_size, self.sample_size, self.hidden_dim)
+            ez = ez.view(self.batch_size, 1, self.hidden_dim)
         else:
             ez = Variable(torch.zeros(ex.size()).cuda())
 
@@ -248,11 +246,10 @@ class LatentDecoder(nn.Module):
 
     """
 
-    def __init__(self, batch_size, sample_size, n_features,
+    def __init__(self, batch_size, n_features,
                  n_hidden, hidden_dim, c_dim, z_dim, nonlinearity):
         super(LatentDecoder, self).__init__()
         self.batch_size = batch_size
-        self.sample_size = sample_size
         self.n_features = n_features
 
         self.n_hidden = n_hidden
@@ -317,12 +314,11 @@ class ObservationDecoder(nn.Module):
 
     """
 
-    def __init__(self, batch_size, sample_size, n_features,
+    def __init__(self, batch_size, n_features,
                  n_hidden, hidden_dim, c_dim, n_stochastic, z_dim,
                  nonlinearity):
         super(ObservationDecoder, self).__init__()
         self.batch_size = batch_size
-        self.sample_size = sample_size
         self.n_features = n_features
 
         self.n_hidden = n_hidden
@@ -344,11 +340,9 @@ class ObservationDecoder(nn.Module):
         self.fc_block = FCResBlock(dim=self.hidden_dim*2, n=self.n_hidden - 1,
                                    nonlinearity=self.nonlinearity, batch_norm=True)
 
-	self.extra_fc = nn.Linear()
-
         self.fc_params = nn.Linear(self.hidden_dim*2, self.n_features)
 
-    def forward(self, zs, c):
+    def forward(self, zs, c, sample_size):
         ezs = self.fc_zs(zs)
         ezs = ezs.view(self.batch_size, 1, self.hidden_dim*2)
 
@@ -360,7 +354,7 @@ class ObservationDecoder(nn.Module):
         e = e.view(-1, self.hidden_dim*2)
 
         e = self.fc_block(e)
-	e = e.view(self.batch_size,1,self.hidden_dim*2).expand_as(Variable(torch.zeros(self.batch_size, self.sample_size, self.hidden_dim*2).cuda()))
+	e = e.view(self.batch_size,1,self.hidden_dim*2).expand_as(Variable(torch.zeros(self.batch_size, sample_size, self.hidden_dim*2).cuda()))
 	e = e.view(-1, self.hidden_dim*2)
 
         mean = self.fc_params(e)
