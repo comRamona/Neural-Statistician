@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, unicode_literals
-from embeddings import GloveMatrix, TextEmbedder
+from embeddings2 import GloveMatrix, TextEmbedder
 from wordsmodel import Statistician
 import torch
 from torch.nn import functional as F
@@ -25,7 +25,7 @@ te = TextEmbedder(gm)
 def bow_prepare(params, samples):
     pass
 
-def bow_batcher(params, batch, sent_length = 50):
+def bow_batcher(params, batch, sent_length = 40):
     batch = [sent if sent != [] else ['.'] for sent in batch]
     embeddings = []
     for sent in batch:
@@ -35,7 +35,6 @@ def bow_batcher(params, batch, sent_length = 50):
 
     embeddings = np.vstack(embeddings)
     return embeddings
-
 
 
 # Set params for SentEval

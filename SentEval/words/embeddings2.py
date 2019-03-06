@@ -39,10 +39,14 @@ class GloveMatrix(object):
             lines = f.read().split("\n")
             for line in lines:
                 values = line.split()
-                if len(values) > 0:
-                    word = values[0]
-                    coefs = np.asarray(values[1:], dtype='float32')
-                    self.embedding_index[word] = coefs
+                if len(values) > 1:
+                    try:
+                        word = values[0]
+                        coefs = np.asarray(values[1:], dtype='float32')
+                        self.embedding_index[word] = coefs
+                    except Exception as e:
+                        print(word)
+                        print(values[1:])
 
     def get_index(self):
         return self.embedding_index    
@@ -81,7 +85,7 @@ class TextEmbedder(object):
     def get_zero(self):
         return np.zeros(300).astype(np.float32)
     
-    def get_sentence_embedding(self, sent, sent_length = 50):
+    def get_sentence_embedding(self, sent, sent_length = 40):
         sent_vec = []
         for word in sent[:sent_length]:
             emb = self.get_any(word)
