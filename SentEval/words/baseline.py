@@ -28,7 +28,6 @@ def bow_prepare(params, samples):
 def bow_batcher(params, batch, sent_length = 50):
     batch = [sent if sent != [] else ['.'] for sent in batch]
     embeddings = []
-    model.eval()
     for sent in batch:
         sentvect = te.get_sentence_embedding(sent, sent_length)
         emb = np.mean(sentvect, 0)
