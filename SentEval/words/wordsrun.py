@@ -9,6 +9,8 @@ from torch.autograd import Variable
 from torch.nn import functional as F
 from torch.utils import data
 from tqdm import tqdm
+import logging 
+logging.basicConfig(filename='example.log',level=logging.DEBUG)
 
 # command line args
 parser = argparse.ArgumentParser(description='Neural Statistician Synthetic Experiment')
@@ -55,7 +57,7 @@ parser.add_argument('--epochs', type=int, default=100,
 parser.add_argument('--viz-interval', type=int, default=-1,
                     help='number of epochs between visualizing context space '
                          '(default: -1 (only visualize last epoch))')
-parser.add_argument('--save_interval', type=int, default=-1,
+parser.add_argument('--save_interval', type=int, default=1,
                     help='number of epochs between saving model '
                          '(default: -1 (save on last epoch))')
 parser.add_argument('--clip-gradients', type=bool, default=True,
@@ -97,11 +99,17 @@ def run(model, optimizer, loaders, datasets, show_plots=False):
         running_vlb /= (len(train_dataset) // args.batch_size)
         s = "VLB: {:.3f}".format(running_vlb)
         tbar.set_description(s)
+        logging.debug(s)
 
         # reduce weight
         alpha *= 0.5
+        
+        if (epoch + 1) % save_interval == 0:
+            filename = time_stamp + '-{}.m'.format(epoch + 1)
+            save_path = os.path.join(args.output_dir, 'checkpoints/' + filename)
+            model.save(optimizer, save_path)
 
-    model.save(optimizer, "finalmodel2.m")
+    model.save(optimizer, "finalmodel.m")
 
 
 def main():
@@ -117,7 +125,7 @@ def main():
     loaders = (train_loader, test_loader)
 
     # hardcoded sample_size and n_features when making Spatial MNIST dataset
-    sample_size = 15 # sentence length mode
+    sample_size = 40 # sentence length mode
     n_features = 300 # n-dimensional word embedding vectors
     model_kwargs = {
         'batch_size': args.batch_size,
