@@ -10,7 +10,7 @@ from torch.nn import functional as F
 from torch.utils import data
 from tqdm import tqdm
 import logging 
-logging.basicConfig(filename='example.log',level=logging.DEBUG)
+logging.basicConfig(filename='wordsbig.log',level=logging.DEBUG)
 
 # command line args
 parser = argparse.ArgumentParser(description='Neural Statistician Synthetic Experiment')
