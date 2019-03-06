@@ -14,17 +14,18 @@ class GloveMatrix(object):
     """
     Downloads and loads GloVe matrix.
     """
+    #https://nlp.stanford.edu/data/glove.840B.300d.zip
     def __init__(self):
-        self.glove_url = "http://nlp.stanford.edu/data/glove.6B.zip"
-        self.file_name = "glove.6B.zip"
-        self.dest = "glove.6B"
+        self.glove_url = "http://nlp.stanford.edu/data/glove.840B.300d.zip"
+        self.file_name = "glove.840B.300d.zip"
+        self.dest = "glove.840B.300d"
         self.download_glove()
         embedding_index = self.load_matrix()
         self.EMBEDDING_DIM = 300
         print("Done")
         
     def download_glove(self):
-        if not os.path.exists("glove.6B/glove.6B.300d.txt"):
+        if not os.path.exists("glove.840B.300d/glove.6B.300d.txt"):
             if os.path.exists(self.file_name):
                 self.unzip_file(self.file_name, self.dest)
             else:
@@ -34,7 +35,7 @@ class GloveMatrix(object):
     def load_matrix(self):       
         print("Loading embedding matrix")
         self.embedding_index = {}
-        with open('glove.6B/glove.6B.300d.txt', "r") as f:
+        with open('glove.840B.300d/glove.840B.300d.txt', "r") as f:
             lines = f.read().split("\n")
             for line in lines:
                 values = line.split()
