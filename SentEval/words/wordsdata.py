@@ -31,11 +31,14 @@ class WikipediaDataset(data.Dataset):
 			self.content = None
 			self.file_index += 1
 			self.content_idx = 0
+		if self.file_index == 500:
+			self.file_index = 1
+
 
 		return batch
 
 	def __len__(self):
-		return 5000000 #5 million total sentence embeddings
+		return 2000000 #2 million total sentence embeddings
 
 # class SpatialMNISTDataset(data.Dataset):
 #     def __init__(self, data_dir, split='train'):
