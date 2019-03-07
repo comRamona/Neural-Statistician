@@ -1,9 +1,10 @@
 import argparse
 import os
 import time
+import numpy as np
 
 from wordsdata import WikipediaDataset
-from wordsmodel import Statistician
+from wordsmodel2 import Statistician
 from torch import optim
 from torch.autograd import Variable
 from torch.nn import functional as F
@@ -91,8 +92,11 @@ def run(model, optimizer, loaders, datasets, show_plots=False):
         running_vlb = 0
         for batch, sample_size in train_loader:
             inputs = Variable(batch.cuda())
-            vlb = model.step(inputs, alpha, optimizer, clip_gradients=args.clip_gradients, sample_size)
-            running_vlb += vlb
+	    sam_size = np.array(sample_size)
+		
+            for i in range(len(sam_size)):
+                vlb = model.step(inputs[i], alpha, optimizer, clip_gradients=args.clip_gradients, sam_size[i])
+                running_vlb += vlb
 
         running_vlb /= (len(train_dataset) // args.batch_size)
         s = "VLB: {:.3f}".format(running_vlb)
