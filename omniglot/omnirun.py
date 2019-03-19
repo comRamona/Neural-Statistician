@@ -1,7 +1,8 @@
 import argparse
 import os
 import time
-
+import numpy as np
+from copy import deepcopy
 from omnidata import OmniglotSetsDataset, load_mnist_test_batch
 from omnimodel import Statistician
 from omniplot import save_test_grid
@@ -11,6 +12,11 @@ from torch.nn import functional as F
 from torch.utils import data
 from tqdm import tqdm
 import torch
+
+
+
+import logging
+logging.basicConfig(filename='examplebin.log',level=logging.DEBUG)
 
 # command line args
 parser = argparse.ArgumentParser(description='Neural Statistician Synthetic Experiment')
@@ -71,7 +77,7 @@ os.makedirs(os.path.join(args.output_dir, 'figures'), exist_ok=True)
 # experiment start time
 time_stamp = time.strftime("%d-%m-%Y-%H:%M:%S")
 
-def load_checkpoint(model_kwargs, filename="outputdropout/checkpoints/23-02-2019-16:39:28-400.m"):
+def load_checkpoint(model_kwargs, filename="outputs/outputnewmore/checkpoints/07-03-2019-21:47:26-200.m"):
     model = Statistician(**model_kwargs)
     model.cuda()
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
@@ -97,6 +103,7 @@ def run(model, optimizer, loaders, datasets):
     train_dataset, test_dataset = datasets
     train_loader, test_loader = loaders
     test_batch = next(iter(test_loader))
+    the_batch = next(iter(train_loader))
     mnist_test_batch = load_mnist_test_batch(args.mnist_data_dir, args.batch_size)
 
     viz_interval = args.epochs if args.viz_interval == -1 else args.viz_interval
@@ -106,28 +113,47 @@ def run(model, optimizer, loaders, datasets):
     alpha = 1
     # main training loop
     tbar = tqdm(range(args.epochs))
+    vbs = []
     for epoch in tbar:
 
         # train step (iterate once over training data)
         model.train()
         running_vlb = 0
         for batch in train_loader:
+            #batch = deepcopy(r_batch)
+            #random_bin = 0.5 #np.random.random()
+            #batch[batch < random_bin] = 0
+            #batch[batch >= random_bin] = 1
             inputs = Variable(batch.cuda())
             vlb = model.step(inputs, alpha, optimizer, clip_gradients=args.clip_gradients)
             running_vlb += vlb
+
 
         # update running lower bound
         running_vlb /= (len(train_dataset) // args.batch_size)
         s = "VLB: {:.3f}".format(running_vlb)
         tbar.set_description(s)
+        logging.info(s)
+        vbs.append(s)
+        print(s)
 
         # reduce weight
         alpha *= 0.5
 
-        # evaluate on test set by sampling conditioned on contexts
+        #evaluate on test set by sampling conditioned on contexts
         model.eval()
-        if (epoch + 1) % viz_interval == 0:
-            # unseen Omniglot
+        if (epoch + 1) % viz_interval == 0 or epoch == 0:
+            #t_batch = deepcopy(test_batch)
+            #random_bin = 0.5 #np.random.random()
+            #t_batch[t_batch < random_bin] = 0
+            #t_batch[t_batch >= random_bin] = 1
+            with torch.no_grad():
+                inputs = Variable(batch.cuda())
+            samples = model.sample_conditioned(inputs)
+            filename = time_stamp + '-grid-{}.png'.format(epoch + 1)
+            save_path = os.path.join(args.output_dir, 'figures/' + filename)
+            save_test_grid(inputs, samples, save_path)
+            #unseen Omniglot
             filename = time_stamp + '-grid-{}.png'.format(epoch + 1)
             save_path = os.path.join(args.output_dir, 'figures/' + filename)
             with torch.no_grad():
@@ -135,7 +161,7 @@ def run(model, optimizer, loaders, datasets):
             samples = model.sample_conditioned(inputs)
             save_test_grid(inputs, samples, save_path)
 
-            # unseen MNIST
+            #unseen MNIST
             filename = time_stamp + '-mnist-grid-{}.png'.format(epoch + 1)
             save_path = os.path.join(args.output_dir, 'figures/' + filename)
             with torch.no_grad():
@@ -143,18 +169,19 @@ def run(model, optimizer, loaders, datasets):
             samples = model.sample_conditioned(inputs)
             save_test_grid(inputs, samples, save_path)
 
-        # checkpoint model at intervals
+        #checkpoint model at intervals
         if (epoch + 1) % save_interval == 0:
             filename = time_stamp + '-{}.m'.format(epoch + 1)
             save_path = os.path.join(args.output_dir, 'checkpoints/' + filename)
             model.save(optimizer, save_path)
 
+    logging.info(vbs)
 
 def main():
     # create datasets
     train_dataset = OmniglotSetsDataset(data_dir=args.data_dir, split='train',
-                                        augment=True)
-    test_dataset = OmniglotSetsDataset(data_dir=args.data_dir, split='test')
+                                        augment=True, sample_size=args.sample_size)
+    test_dataset = OmniglotSetsDataset(data_dir=args.data_dir, split='test', sample_size=args.sample_size)
     datasets = (train_dataset, test_dataset)
 
     # create loaders

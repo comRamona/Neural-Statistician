@@ -61,7 +61,7 @@ model.cuda()
 optimizer = optim.Adam(model.parameters(), lr=1e-3)
 
 #filename = "../outputdilate4/checkpoints/15-02-2019-03:43:01-400.m"
-filename = "../outputdropout/checkpoints/23-02-2019-16:39:28-400.m"
+filename = "../outputs/outputnewmore/checkpoints/07-03-2019-21:47:26-300.m"
 checkpoint = torch.load(filename)
 model.load_state_dict(checkpoint['model_state'])
 optimizer.load_state_dict(checkpoint['optimizer_state'])
@@ -171,10 +171,11 @@ def do_kshot(dataset="mnist", K=10, support=1, n_trials=100, n_test_samples=1):
 # accs_1 = mnist_one_shot(support=1, n_test_samples=10, n_trials=100)
 # print("1-shot: {}".format(np.mean(accs_1)))
 dataset = "omniglot"
-for support in [1, 5]:
-    for K in [5,20]:
+for support in [1]:
+    for K in [20]:
         logging.info("************************")
         logging.info("OMNIGLOT {}-Shot {}-Way".format(support, K))
-        accs = do_kshot(dataset="omniglot", K=K, support=support, n_test_samples=20, n_trials=100)
+        accs = do_kshot(dataset=dataset, K=K, support=support, n_test_samples=20, n_trials=100)
         logging.info("OMNIGLOT {}-Shot {}-Way".format(support, K))
         logging.info("k-shot: {}".format(np.mean(accs)))
+        print(np.mean(accs))

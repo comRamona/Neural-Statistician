@@ -199,7 +199,7 @@ class StatisticNetwork(nn.Module):
 
     def forward(self, h, summarize=False, single_sample=False):
         e = self.prepool(h)
-        if summarize or single_sample:
+        if summarize or single_sample or not self.training:
             ef = Variable(torch.ones(e.shape[0],1).cuda())
             e = torch.cat([e, ef], -1)
         else:
@@ -222,7 +222,7 @@ class StatisticNetwork(nn.Module):
     def sample_dropout(self, e):
         # create mask
         a = Variable(torch.ones((self.batch_size, 1, 1)).cuda())
-        p = 0.5 if self.training else 1
+        p = 0.8 if self.training else 1
         b = Variable(torch.bernoulli(p * torch.ones((self.batch_size,
                                                      self.sample_size - 1, 1)).cuda()))
         mask = torch.cat([a, b], 1)
@@ -265,10 +265,10 @@ class InferenceNetwork(nn.Module):
         self.fc_c = nn.Linear(self.c_dim, self.hidden_dim)
         self.fc_z = nn.Linear(self.z_dim, self.hidden_dim)
 
-        self.fc_res_block = FCResBlock(dim=self.hidden_dim, n=self.n_hidden,
+        self.fc_res_block = FCResBlock(dim=self.hidden_dim*3, n=self.n_hidden,
                                        nonlinearity=self.nonlinearity, batch_norm=True)
 
-        self.fc_params = nn.Linear(self.hidden_dim, 2 * self.z_dim)
+        self.fc_params = nn.Linear(3*self.hidden_dim, 2 * self.z_dim)
         self.bn_params = nn.BatchNorm1d(1, eps=1e-3, momentum=1e-2)
 
     def forward(self, h, z, c):
@@ -291,8 +291,8 @@ class InferenceNetwork(nn.Module):
         ec = ec.view(self.batch_size, 1, self.hidden_dim).expand_as(eh)
 
         # sum and reshape
-        e = eh + ez + ec
-        e = e.view(self.batch_size * self.sample_size, self.hidden_dim)
+        e = torch.cat([eh, ez, ec],2)
+        e = e.view(self.batch_size * self.sample_size, 3 * self.hidden_dim)
         e = self.nonlinearity(e)
 
         # for layer in self.fc_block:
@@ -336,10 +336,10 @@ class LatentDecoder(nn.Module):
         self.fc_c = nn.Linear(self.c_dim, self.hidden_dim)
         self.fc_z = nn.Linear(self.z_dim, self.hidden_dim)
 
-        self.fc_res_block = FCResBlock(dim=self.hidden_dim, n=self.n_hidden,
-                                       nonlinearity=self.nonlinearity, batch_norm=True)
+        self.fc_res_block = FCResBlock(dim=2*self.hidden_dim, n=self.n_hidden,
+                                       nonlinearity=self.nonlinearity, batch_norm=False)
 
-        self.fc_params = nn.Linear(self.hidden_dim, 2 * self.z_dim)
+        self.fc_params = nn.Linear(2*self.hidden_dim, 2 * self.z_dim)
         self.bn_params = nn.BatchNorm1d(1, eps=1e-3, momentum=1e-2)
 
     def forward(self, z, c):
@@ -357,8 +357,8 @@ class LatentDecoder(nn.Module):
         ec = ec.view(self.batch_size, 1, self.hidden_dim).expand_as(ez)
 
         # sum and reshape
-        e = ez + ec
-        e = e.view(-1, self.hidden_dim)
+        e = torch.cat([ez, ec],2)
+        e = e.view(-1, 2*self.hidden_dim)
         e = self.nonlinearity(e)
 
         # for layer in self.fc_block:
@@ -403,7 +403,7 @@ class ObservationDecoder(nn.Module):
         self.fc_zs = nn.Linear(self.n_stochastic * self.z_dim, self.hidden_dim)
         self.fc_c = nn.Linear(self.c_dim, self.hidden_dim)
 
-        self.fc_initial = nn.Linear(self.hidden_dim, 256 * 4 * 4)
+        self.fc_initial = nn.Linear(2*self.hidden_dim, 256 * 4 * 4)
 
         self.conv_layers = nn.ModuleList([
             Conv2d3x3(256, 256),
@@ -439,9 +439,9 @@ class ObservationDecoder(nn.Module):
         ec = self.fc_c(c)
         ec = ec.view(self.batch_size, 1, self.hidden_dim).expand_as(ezs)
 
-        e = ezs + ec
+        e = torch.cat([ezs, ec],2)
         e = self.nonlinearity(e)
-        e = e.view(-1, self.hidden_dim)
+        e = e.view(-1, 2*self.hidden_dim)
 
         e = self.fc_initial(e)
         e = e.view(-1, self.hidden_dim, 4, 4)

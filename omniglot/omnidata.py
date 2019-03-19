@@ -1,5 +1,6 @@
 import gzip
 import numpy as np
+from copy import deepcopy
 import random
 import os
 import pickle
@@ -56,123 +57,178 @@ def load_mnist(data_dir):
     return images, labels
 
 
-def load_mnist_test_batch(data_dir, batch_size):
+def load_mnist_test_batch(data_dir, batch_size, sample_size=5):
     images, one_hot_labels = load_mnist(data_dir=data_dir)
     labels = np.argmax(one_hot_labels, axis=1)
-    ixs = [np.random.choice(np.where(labels == i)[0], size=5, replace=False)
+    ixs = [np.random.choice(np.where(labels == i)[0], size=sample_size, replace=False)
            for i in range(10)]
     batch = np.array([images[ix] for ix in ixs])
     return torch.from_numpy(batch).clone().repeat((batch_size // 10) + 1, 1, 1)[:batch_size]
 
 
-class OmniglotSetsDataset(data.Dataset):
-    def __init__(self, data_dir, sample_size=5, split='train', augment=False):
-        self.split = split
-        self.sample_size = sample_size
-        path = os.path.join(data_dir, 'train_val_test_split.pkl')
-        with open(path, 'rb') as file:
-            splits = pickle.load(file)
-        if split == 'train':
-            images, labels = splits[:2]
-            sets, set_labels = self.make_sets(images, labels)
-            if augment:
-                sets = self.augment_sets(sets)
-            else:
-                sets = np.random.binomial(1, p=sets, size=sets.shape).astype(np.float32)
-        elif split == 'valid':
-            images, labels = splits[2:4]
-            sets, set_labels = self.make_sets(images, labels)
-        elif split == 'test':
-            images, labels = splits[4:]
-            sets, set_labels = self.make_sets(images, labels)
-        elif split == "kshot":
-            sets, set_labels = splits[4:]
-        else:
-            "Unrecognized split, returning None."
-            sets, set_labels = None, None
-        if split != "kshot":
-            sets = sets.reshape(-1, 5, 1, 28, 28)
+import numpy as np
+import os
+import pickle
 
-        self.n = len(sets)
-        self.data = {
-            'inputs': sets,
-            'targets': set_labels
-        }
+from torch.utils import data
+
+def rotate_right(img, angle):    
+    if angle == 0:
+        return img  
+    elif angle == 1:  # 90 degree
+        return img.T[:,::-1]
+    elif angle == 2:  # 180 degree
+        return img[::-1,::-1]
+    elif angle == 3:  # dilate
+        return dilation(img).astype(img.dtype)
+        #return img.T[::-1,:]
+    else:
+        raise ValueError('angle must be 0, 1, 2 or 3')
         
-    def __getitem__(self, item):
-        if self.split == "kshot":
-            return (self.data['inputs'][item], self.data['targets'][item])
+class OmniglotSetsDataset(data.Dataset):
+    def __init__(self, data_dir = None, split="train", sample_size = 20, augment="True"):
+        self.split = split
+        if split == "train":
+            a = np.load("../train.npz")
         else:
-            return self.data['inputs'][item]
+            a = np.load("../test.npz")
+        t = {key: np.array(val) for (key, val) in a.items()}
+        self.labels = []
+        self.images = []
+        ks = list(t.keys())
+        random.shuffle(ks)
+        for rot in range(4):
+            deg = random.sample(range(4), 1)[0]
+            for k, char in enumerate(ks):
+                _imgs = t[char]
+                _ind = random.sample(range(len(_imgs)), sample_size)
+                self.images.extend([np.array([rotate_right(_imgs[i], deg) 
+                                              if self.split == "train" else _imgs[i] for i in _ind])])
+                self.labels.extend(k for i in _ind)
+                
+        self.data = {
+            'inputs': np.vstack(self.images),
+            'targets': np.array(self.labels)
+        }
+
+    def __getitem__(self, item):
+        if self.split == "train" or self.split == "test":
+            return self.images[item]
+        else:
+            return self.images[item], self.labels[item]
 
     def __len__(self):
-        return self.n
+        return len(self.images)
 
-    def augment_sets(self, sets):
-        augmented = np.copy(sets)
-        augmented = augmented.reshape(-1, self.sample_size, 28, 28)
-        n_sets = len(augmented)
 
-        for s in range(n_sets):
-            op = np.random.choice([0,1,2])
-            if op == 0:
-                augmented[s] = augmented[s, :, :, ::-1] #flip horizontal
-            elif op == 1:
-                augmented[s] = augmented[s, :, ::-1, :] # flip vertical
-            else:
-                a = augmented[s]                        # augment
-                augmented[s] = dilation(a).astype(a.dtype)
+# class OmniglotSetsDataset(data.Dataset):
+#     def __init__(self, data_dir, sample_size=5, split='train', augment=False):
+#         self.split = split
+#         self.sample_size = sample_size
+#         path = os.path.join(data_dir, 'train_val_test_split.pkl')
+#         with open(path, 'rb') as file:
+#             splits = pickle.load(file)
+#         if split == 'train':
+#             images, labels = splits[:2]
+#             sets, set_labels = self.make_sets(images, labels)
+#             if augment:
+#                 sets = self.augment_sets(sets)
+#             else:
+#                 sets = np.random.binomial(1, p=sets, size=sets.shape).astype(np.float32)
+#         elif split == 'valid':
+#             images, labels = splits[2:4]
+#             sets, set_labels = self.make_sets(images, labels)
+#         elif split == 'test':
+#             images, labels = splits[4:]
+#             sets, set_labels = self.make_sets(images, labels)
+#         elif split == "kshot":
+#             sets, set_labels = splits[4:]
+#         else:
+#             "Unrecognized split, returning None."
+#             sets, set_labels = None, None
+#         if split != "kshot":
+#             sets = sets.reshape(-1, sample_size, 1, 28, 28)
 
-        for s in range(n_sets):
-            angle = np.random.uniform(0, 360)
-            for item in range(self.sample_size):
-                augmented[s, item] = rotate(augmented[s, item], angle)
-        augmented = np.concatenate([augmented.reshape(n_sets, self.sample_size, 28*28),
-                                    sets])
+#         self.n = len(sets)
+#         self.data = {
+#             'inputs': sets,
+#             'targets': set_labels
+#         }
+        
+#     def __getitem__(self, item):
+#         if self.split == "kshot":
+#             return (self.data['inputs'][item], self.data['targets'][item])
+#         else:
+#             return self.data['inputs'][item]
 
-        return augmented
+#     def __len__(self):
+#         return self.n
 
-    @staticmethod
-    def one_hot(dense_labels, num_classes):
-        num_labels = len(dense_labels)
-        offset = np.arange(num_labels) * num_classes
-        one_hot_labels = np.zeros((num_labels, num_classes))
-        one_hot_labels.flat[offset + dense_labels.ravel()] = 1
-        return one_hot_labels
+#     def augment_sets(self, sets):
+#         augmented = np.copy(sets)
+#         augmented = augmented.reshape(-1, self.sample_size, 28, 28)
+#         n_sets = len(augmented)
 
-    def make_sets(self, images, labels):
-        num_classes = np.max(labels) + 1
-        labels = self.one_hot(labels, num_classes)
+#         for s in range(n_sets):
+#             op = np.random.choice([0,1,2])
+#             if op == 0:
+#                 augmented[s] = augmented[s, :, :, ::-1] #flip horizontal
+#             elif op == 1:
+#                 augmented[s] = augmented[s, :, ::-1, :] # flip vertical
+#             else:
+#                 a = augmented[s]                        # augment
+#                 augmented[s] = dilation(a).astype(a.dtype)
 
-        n = len(images)
-        perm = np.random.permutation(n)
-        images = images[perm]
-        labels = labels[perm]
+#         for s in range(n_sets):
+#             angle = np.random.uniform(0, 360)
+#             for item in range(self.sample_size):
+#                 augmented[s, item] = rotate(augmented[s, item], angle)
+#         augmented = np.concatenate([augmented.reshape(n_sets, self.sample_size, 28*28),
+#                                     sets])
 
-        image_sets = []
-        set_labels = []
+#         return augmented
 
-        for i in range(num_classes):
-            ix = labels[:, i].astype(bool)
-            num_instances_of_class = np.sum(ix)
-            if num_instances_of_class < self.sample_size:
-                pass
-            else:
-                remainder = num_instances_of_class % self.sample_size
-                image_set = images[ix]
-                if remainder > 0:
-                    image_set = image_set[:-remainder]
-                image_sets.append(image_set)
-                k = len(image_set)
-                set_labels.append(labels[ix][:int(k / self.sample_size)])
+#     @staticmethod
+#     def one_hot(dense_labels, num_classes):
+#         num_labels = len(dense_labels)
+#         offset = np.arange(num_labels) * num_classes
+#         one_hot_labels = np.zeros((num_labels, num_classes))
+#         one_hot_labels.flat[offset + dense_labels.ravel()] = 1
+#         return one_hot_labels
 
-        x = np.concatenate(image_sets, axis=0).reshape(-1, self.sample_size, 28*28)
-        y = np.concatenate(set_labels, axis=0)
-        if np.max(x) > 1:
-            x /= 255
+#     def make_sets(self, images, labels):
+#         num_classes = np.max(labels) + 1
+#         labels = self.one_hot(labels, num_classes)
 
-        perm = np.random.permutation(len(x))
-        x = x[perm]
-        y = y[perm]
+#         n = len(images)
+#         perm = np.random.permutation(n)
+#         images = images[perm]
+#         labels = labels[perm]
 
-        return x, y
+#         image_sets = []
+#         set_labels = []
+
+#         for i in range(num_classes):
+#             ix = labels[:, i].astype(bool)
+#             num_instances_of_class = np.sum(ix)
+#             if num_instances_of_class < self.sample_size:
+#                 pass
+#             else:
+#                 remainder = num_instances_of_class % self.sample_size
+#                 image_set = images[ix]
+#                 if remainder > 0:
+#                     image_set = image_set[:-remainder]
+#                 image_sets.append(image_set)
+#                 k = len(image_set)
+#                 set_labels.append(labels[ix][:int(k / self.sample_size)])
+
+#         x = np.concatenate(image_sets, axis=0).reshape(-1, self.sample_size, 28*28)
+#         y = np.concatenate(set_labels, axis=0)
+#         if np.max(x) > 1:
+#             x /= 255
+
+#         perm = np.random.permutation(len(x))
+#         x = x[perm]
+#         y = y[perm]
+
+#         return x, y
