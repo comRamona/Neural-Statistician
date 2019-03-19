@@ -3,9 +3,6 @@ import torch
 from torch import nn
 from torch.autograd import Variable
 
-
-
-
 # Module for residual/skip connections
 class FCResBlock(nn.Module):
     def __init__(self, dim, n, nonlinearity, batch_norm=True):
