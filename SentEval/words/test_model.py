@@ -25,26 +25,43 @@ def kl_similarity(s1, s2, sim_metric = cosine_sim):
     c_mean1, c_logvar1 = s1[0:n], s1[n:]
     c_mean2, c_logvar2 = s2[0:n], s2[n:]
     sim = sim_metric(c_mean1, c_logvar1, c_mean2,c_logvar2)
-    if sim_metric == kl_diagnormal_diagnormal return 1 - sim else return sim
+    if sim_metric == kl_diagnormal_diagnormal:
+        return 1 - sim 
+    else:
+        return sim
 
 
-def load_checkpoint(filename="mm.m"):
+def load_checkpoint(filename="rr.m"):
     sample_size = 40
     n_features = 300
+#     model_kwargs = {
+#         'batch_size': 100,
+#         'sample_size': sample_size,
+#         'n_features': n_features,
+#         'c_dim': 512,
+#         'n_hidden_statistic': 3,
+#         'hidden_dim_statistic': 512,
+#         'n_stochastic': 3,
+#         'z_dim': 16,
+#         'n_hidden': 3,
+#         'hidden_dim': 512,
+#         'nonlinearity': F.relu,
+#         'print_vars': False
+#     }
     model_kwargs = {
-        'batch_size': 100,
-        'sample_size': sample_size,
-        'n_features': n_features,
-        'c_dim': 64,
-        'n_hidden_statistic': 3,
-        'hidden_dim_statistic': 256,
-        'n_stochastic': 3,
-        'z_dim': 2,
-        'n_hidden': 3,
-        'hidden_dim': 256,
-        'nonlinearity': F.relu,
-        'print_vars': False
-    }
+            'batch_size': 100,
+            'sample_size': 40,
+            'n_features': 300,
+            'c_dim': 64,
+            'n_hidden_statistic': 3,
+            'hidden_dim_statistic': 256,
+            'n_stochastic': 3,
+            'z_dim': 2,
+            'n_hidden': 3,
+            'hidden_dim': 256,
+            'nonlinearity': F.relu,
+            'print_vars': False
+        }
     model = Statistician(**model_kwargs)
     model.cuda()
     optimizer = optim.Adam(model.parameters(), 1e-3)
@@ -71,10 +88,7 @@ class fake_model():
         return np.concatenate([c1,v1])
     
 #model = fake_model()    
-model, optimizer = load_checkpoint()
 
-gm = GloveMatrix()
-te = TextEmbedder(gm)
 
 # SentEval prepare and batcher
 def prepare(params, samples):
@@ -82,10 +96,13 @@ def prepare(params, samples):
     params.similarity = kl_similarity
     return
 
-def batcher(params, batch, sent_length = 40):
+def batcher(params, batch):
     batch = [sent if sent != [] else ['.'] for sent in batch]
     embeddings = []
+    model = params.model
+    te = params.te
     model.eval()
+    sent_length = params.sent_len
     for sent in batch:
         sentvect = te.get_sentence_embedding(sent, sent_length)
         with torch.no_grad():
@@ -99,14 +116,18 @@ def batcher(params, batch, sent_length = 40):
 
 
 # Set params for SentEval
-params_senteval = {'task_path': PATH_TO_DATA, 'usepytorch': True, 'kfold': 1, 'similarity' : kl_similarity}
-params_senteval['classifier'] = {'nhid': 0, 'optim': 'rmsprop', 'batch_size': 128,
-                                 'tenacity': 3, 'epoch_size': 2}
 
 # Set up logger
 logging.basicConfig(format='%(asctime)s : %(message)s', level=logging.DEBUG)
 
 if __name__ == "__main__":
+    model, optimizer = load_checkpoint()
+    gm = GloveMatrix()
+    te = TextEmbedder(gm)
+    params_senteval = {'task_path': PATH_TO_DATA, 'usepytorch': True, 'kfold': 1, 'similarity' : kl_similarity
+                       , 'model':model, 'sent_len':40, 'te':te}
+    params_senteval['classifier'] = {'nhid': 0, 'optim': 'rmsprop', 'batch_size': 128,
+                                     'tenacity': 3, 'epoch_size': 2}
     se = senteval.engine.SE(params_senteval, batcher, prepare)
     transfer_tasks = ['STS12', 'STS13', 'STS14', 'STS15', 'STS16']
     results = se.eval(transfer_tasks)

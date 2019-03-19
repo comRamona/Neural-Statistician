@@ -10,7 +10,16 @@ from torch.nn import functional as F
 from torch.utils import data
 from tqdm import tqdm
 import logging 
-logging.basicConfig(filename='wordsbig.log',level=logging.DEBUG)
+from test_model import kl_similarity, prepare, batcher
+from embeddings import GloveMatrix, TextEmbedder
+logging.basicConfig(filename='wordsNS.log',level=logging.DEBUG)
+import sys
+
+PATH_TO_SENTEVAL = './'
+PATH_TO_DATA = './data'
+sys.path.insert(0, PATH_TO_SENTEVAL)
+import senteval
+
 
 # command line args
 parser = argparse.ArgumentParser(description='Neural Statistician Synthetic Experiment')
@@ -27,21 +36,21 @@ parser.add_argument('--batch-size', type=int, default=100,
 
 parser.add_argument('--n-stochastic', type=int, default=3,
                     help='number of z variables in hierarchy (default: 3)')
-parser.add_argument('--z-dim', type=int, default=16,
+parser.add_argument('--z-dim', type=int, default=300,
                     help='dimension of z variables (default: 16)')
-parser.add_argument('--c-dim', type=int, default=512,
+parser.add_argument('--c-dim', type=int, default=300,
                     help='dimension of c variables (default: 512)')
 
 
 parser.add_argument('--n-hidden-statistic', type=int, default=3,
                     help='number of hidden layers in statistic network modules '
                          '(default: 3)')
-parser.add_argument('--hidden-dim-statistic', type=int, default=512,
+parser.add_argument('--hidden-dim-statistic', type=int, default=300,
                     help='dimension of hidden layers in statistic network (default: 512)')
 parser.add_argument('--n-hidden', type=int, default=3,
                     help='number of hidden layers in modules outside statistic network '
                          '(default: 3)')
-parser.add_argument('--hidden-dim', type=int, default=512,
+parser.add_argument('--hidden-dim', type=int, default=300,
                     help='dimension of hidden layers in modules outside statistic network '
                          '(default: 512)')
 
@@ -75,6 +84,12 @@ os.makedirs(os.path.join(args.output_dir, 'figures'), exist_ok=True)
 time_stamp = time.strftime("%d-%m-%Y-%H:%M:%S")
 
 def run(model, optimizer, loaders, datasets, show_plots=False):
+    gm = GloveMatrix()
+    te = TextEmbedder(gm)
+    params_senteval = {'task_path': PATH_TO_DATA, 'usepytorch': True, 'kfold': 1,
+                       'similarity' : kl_similarity, 'model': model, 'te':te, 'sent_len':40}
+    params_senteval['classifier'] = {'nhid': 0, 'optim': 'rmsprop', 'batch_size': 128,
+                                     'tenacity': 3, 'epoch_size': 2}
     train_dataset, test_dataset = datasets
     train_loader, test_loader = loaders
 
@@ -104,10 +119,14 @@ def run(model, optimizer, loaders, datasets, show_plots=False):
         # reduce weight
         alpha *= 0.5
         
-        if (epoch + 1) % save_interval == 0:
+        if (epoch + 1) % save_interval == 0 or epoch == 0:
             filename = time_stamp + '-{}.m'.format(epoch + 1)
             save_path = os.path.join(args.output_dir, 'checkpoints/' + filename)
             model.save(optimizer, save_path)
+            se = senteval.engine.SE(params_senteval, batcher, prepare)
+            transfer_tasks = ['STS12', 'STS13', 'STS14', 'STS15', 'STS16']
+            results = se.eval(transfer_tasks)
+            print(results)
 
     model.save(optimizer, "finalmodel.m")
 
