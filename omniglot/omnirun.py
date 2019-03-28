@@ -16,7 +16,7 @@ import torch
 
 
 import logging
-logging.basicConfig(filename='examplebin.log',level=logging.DEBUG)
+logging.basicConfig(filename='bigpig.log',level=logging.DEBUG)
 
 # command line args
 parser = argparse.ArgumentParser(description='Neural Statistician Synthetic Experiment')
@@ -56,12 +56,12 @@ parser.add_argument('--print-vars', type=bool, default=False,
                          '(default: False)')
 parser.add_argument('--learning-rate', type=float, default=1e-3,
                     help='learning rate for Adam optimizer (default: 1e-3).')
-parser.add_argument('--epochs', type=int, default=300,
+parser.add_argument('--epochs', type=int, default=400,
                     help='number of epochs for training (default: 50)')
-parser.add_argument('--viz-interval', type=int, default=-1,
+parser.add_argument('--viz-interval', type=int, default=10,
                     help='number of epochs between visualizing context space '
                          '(default: -1 (only visualize last epoch))')
-parser.add_argument('--save_interval', type=int, default=-1,
+parser.add_argument('--save_interval', type=int, default=10,
                     help='number of epochs between saving model '
                          '(default: -1 (save on last epoch))')
 parser.add_argument('--clip-gradients', type=bool, default=True,

@@ -72,18 +72,24 @@ import pickle
 
 from torch.utils import data
 
-def rotate_right(img, angle):    
+def rotate_right(img, angle): 
+    res = img
     if angle == 0:
-        return img  
+        res = img  
     elif angle == 1:  # 90 degree
-        return img.T[:,::-1]
+        res = img.T[:,::-1]
     elif angle == 2:  # 180 degree
-        return img[::-1,::-1]
-    elif angle == 3:  # dilate
-        return dilation(img).astype(img.dtype)
-        #return img.T[::-1,:]
+        res = img[::-1,::-1] 
+#     elif angle == 3:  #270 degrees
+#          res = img.T[::-1,:] 
     else:
         raise ValueError('angle must be 0, 1, 2 or 3')
+    dilate = np.random.binomial(1, 0.5) #randomly dilate
+    if dilate:
+        return dilation(res).astype(res.dtype)
+    else:
+        return res
+
         
 class OmniglotSetsDataset(data.Dataset):
     def __init__(self, data_dir = None, split="train", sample_size = 20, augment="True"):
@@ -98,13 +104,17 @@ class OmniglotSetsDataset(data.Dataset):
         ks = list(t.keys())
         random.shuffle(ks)
         for rot in range(4):
-            deg = random.sample(range(4), 1)[0]
-            for k, char in enumerate(ks):
-                _imgs = t[char]
-                _ind = random.sample(range(len(_imgs)), sample_size)
-                self.images.extend([np.array([rotate_right(_imgs[i], deg) 
-                                              if self.split == "train" else _imgs[i] for i in _ind])])
-                self.labels.extend(k for i in _ind)
+            degs = [0, 1, 2]
+            if self.split != "train":
+                degs = [0] # do not augment
+            for deg in degs:
+            #deg = random.sample(range(4), 1)[0]
+                for k, char in enumerate(ks):
+                    _imgs = t[char]
+                    _ind = random.sample(range(len(_imgs)), sample_size)
+                    self.images.extend([np.array([rotate_right(_imgs[i], deg) 
+                                                  if self.split == "train" else _imgs[i] for i in _ind])])
+                    self.labels.extend(k for i in _ind)
                 
         self.data = {
             'inputs': np.vstack(self.images),
