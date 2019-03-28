@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, unicode_literals
-from embeddings2 import GloveMatrix, TextEmbedder
+from embeddings import GloveMatrix, TextEmbedder
 from wordsmodel import Statistician
 import torch
 from torch.nn import functional as F
@@ -12,7 +12,7 @@ import numpy as np
 import logging
 
 PATH_TO_SENTEVAL = '../'
-PATH_TO_DATA = '../data'
+PATH_TO_DATA = 'data'
 PATH_TO_VEC = 'glove.6B'
 
 # import SentEval
@@ -20,7 +20,7 @@ sys.path.insert(0, PATH_TO_SENTEVAL)
 import senteval
 
 
-def kl_similarity(s1, s2, sim_metric = cosine_sim):
+def kl_similarity(s1, s2, sim_metric = kl_diagnormal_diagnormal):
     n = int(s1.shape[0] / 2)
     c_mean1, c_logvar1 = s1[0:n], s1[n:]
     c_mean2, c_logvar2 = s2[0:n], s2[n:]
@@ -31,7 +31,7 @@ def kl_similarity(s1, s2, sim_metric = cosine_sim):
         return sim
 
 
-def load_checkpoint(filename="rr.m"):
+def load_checkpoint(filename="22-03-2019-22_38_32-28.m"):
     sample_size = 40
     n_features = 300
 #     model_kwargs = {
@@ -52,13 +52,13 @@ def load_checkpoint(filename="rr.m"):
             'batch_size': 100,
             'sample_size': 40,
             'n_features': 300,
-            'c_dim': 64,
+            'c_dim': 300,
             'n_hidden_statistic': 3,
-            'hidden_dim_statistic': 256,
+            'hidden_dim_statistic': 300,
             'n_stochastic': 3,
-            'z_dim': 2,
+            'z_dim': 300,
             'n_hidden': 3,
-            'hidden_dim': 256,
+            'hidden_dim': 300,
             'nonlinearity': F.relu,
             'print_vars': False
         }

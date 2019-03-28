@@ -2,7 +2,7 @@ import argparse
 import os
 import time
 
-from wordsdata import WikipediaDataset
+from wordsdata import BookDataset
 from wordsmodel import Statistician
 from torch import optim
 from torch.autograd import Variable
@@ -12,7 +12,11 @@ from tqdm import tqdm
 import logging 
 from test_model import kl_similarity, prepare, batcher
 from embeddings import GloveMatrix, TextEmbedder
-logging.basicConfig(filename='wordsNS.log',level=logging.DEBUG)
+logging.basicConfig(
+    format='%(asctime)s %(levelname)-8s %(message)s',
+    level=logging.DEBUG,
+    datefmt='%Y-%m-%d %H:%M:%S',
+    filename='bookNS2.log')
 import sys
 
 PATH_TO_SENTEVAL = './'
@@ -34,7 +38,7 @@ parser.add_argument('--output-dir', required=True, type=str, default=None,
 parser.add_argument('--batch-size', type=int, default=100,
                     help='batch size (of datasets) for training (default: 100)')
 
-parser.add_argument('--n-stochastic', type=int, default=3,
+parser.add_argument('--n-stochastic', type=int, default=1,
                     help='number of z variables in hierarchy (default: 3)')
 parser.add_argument('--z-dim', type=int, default=300,
                     help='dimension of z variables (default: 16)')
@@ -83,11 +87,10 @@ os.makedirs(os.path.join(args.output_dir, 'figures'), exist_ok=True)
 # experiment start time
 time_stamp = time.strftime("%d-%m-%Y-%H:%M:%S")
 
-def run(model, optimizer, loaders, datasets, show_plots=False):
-    gm = GloveMatrix()
-    te = TextEmbedder(gm)
+def run(model, optimizer, loaders, datasets, te, show_plots=False):
+
     params_senteval = {'task_path': PATH_TO_DATA, 'usepytorch': True, 'kfold': 1,
-                       'similarity' : kl_similarity, 'model': model, 'te':te, 'sent_len':40}
+                       'similarity' : kl_similarity, 'model': model, 'te':te, 'sent_len':60}
     params_senteval['classifier'] = {'nhid': 0, 'optim': 'rmsprop', 'batch_size': 128,
                                      'tenacity': 3, 'epoch_size': 2}
     train_dataset, test_dataset = datasets
@@ -132,19 +135,19 @@ def run(model, optimizer, loaders, datasets, show_plots=False):
 
 
 def main():
-    train_dataset = WikipediaDataset(data_dir=args.data_dir, split='train')
-    test_dataset = WikipediaDataset(data_dir=args.data_dir, split='test')
-    datasets = (train_dataset, test_dataset)
+    gm = GloveMatrix()
+    te = TextEmbedder(gm)
+    train_dataset = BookDataset(data_dir=args.data_dir, embedder=te, split='train')
+    datasets = (train_dataset, train_dataset)
 
     train_loader = data.DataLoader(dataset=train_dataset, batch_size=args.batch_size,
                                    shuffle=True, num_workers=0, drop_last=True)
 
-    test_loader = data.DataLoader(dataset=test_dataset, batch_size=args.batch_size,
-                                  shuffle=True, num_workers=0, drop_last=True)
-    loaders = (train_loader, test_loader)
+
+    loaders = (train_loader, train_loader)
 
     # hardcoded sample_size and n_features when making Spatial MNIST dataset
-    sample_size = 40 # sentence length mode
+    sample_size = 60 # sentence length mode
     n_features = 300 # n-dimensional word embedding vectors
     model_kwargs = {
         'batch_size': args.batch_size,
@@ -164,7 +167,7 @@ def main():
     model.cuda()
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
 
-    run(model, optimizer, loaders, datasets, args.show_plots)
+    run(model, optimizer, loaders, datasets, te, args.show_plots)
 
 
 if __name__ == '__main__':

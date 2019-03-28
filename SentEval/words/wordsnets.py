@@ -161,7 +161,10 @@ class StatisticNetwork(nn.Module):
             e = e.view(1, -1, self.hidden_dim)
         else:
             e = e.view(self.batch_size, self.sample_size, self.hidden_dim)
-        e = e.mean(1).view(-1, self.hidden_dim)
+        c = e.shape[1] - (e == 0).sum(dim=1).min(dim=1)[0]
+        e = e.sum(1)
+        e = e / c.view(e.shape[0], 1).float()
+        e = e.view(-1, self.hidden_dim)
         return e
 
 

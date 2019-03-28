@@ -10,6 +10,12 @@ from urllib.request import urlretrieve
 import numpy as np
 from nltk import word_tokenize
 #import pdb
+import logging
+logging.basicConfig(
+    format='%(asctime)s %(levelname)-8s %(message)s',
+    level=logging.DEBUG,
+    datefmt='%Y-%m-%d %H:%M:%S',
+    filename='bookNS2.log')
 class GloveMatrix(object):
     """
     Downloads and loads GloVe matrix.
@@ -17,15 +23,16 @@ class GloveMatrix(object):
     #https://nlp.stanford.edu/data/glove.840B.300d.zip
     def __init__(self):
         self.glove_url = "http://nlp.stanford.edu/data/glove.840B.300d.zip"
-        self.file_name = "glove.840B.300d.zip"
-        self.dest = "glove.840B.300d"
+        self.file_name = "/homes/rgc35/Desktop/neural-statistician/SentEval/glove.840B.300d.zip"
+        self.dest = "/homes/rgc35/Desktop/neural-statistician/SentEval/glove.840B.300d"
         self.download_glove()
         embedding_index = self.load_matrix()
         self.EMBEDDING_DIM = 300
         print("Done")
+        logging.debug("Done")
         
     def download_glove(self):
-        if not os.path.exists("glove.840B.300d/glove.840B.300d.txt"):
+        if not os.path.exists("/homes/rgc35/Desktop/neural-statistician/SentEval/glove.840B.300d/glove.840B.300d.txt"):
             if os.path.exists(self.file_name):
                 self.unzip_file(self.file_name, self.dest)
             else:
@@ -34,8 +41,9 @@ class GloveMatrix(object):
                 
     def load_matrix(self):       
         print("Loading embedding matrix")
+        logging.debug("Loading embedding matrix")
         self.embedding_index = {}
-        with open('glove.840B.300d/glove.840B.300d.txt', "r") as f:
+        with open('/homes/rgc35/Desktop/neural-statistician/SentEval/glove.840B.300d/glove.840B.300d.txt', "r") as f:
             lines = f.read().split("\n")
             for line in lines:
                 values = line.split()
@@ -86,12 +94,7 @@ class TextEmbedder(object):
         return np.zeros(300).astype(np.float32)
     
     def get_sentence_embedding(self, sent, sent_length = 40):
-        sent_vec = []
-        for word in sent[:sent_length]:
-            emb = self.get_any(word)
-            if emb.shape[0] != 0:
-                sent_vec.append(emb)
-        n = len(sent_vec)
-        for w in range(n, sent_length):
-            sent_vec.append(self.get_zero())
-        return np.vstack(sent_vec)
+        sent_vec = np.zeros((sent_length, 300))
+        embs = [self.embedding_index.get(word, self.get_zero()) for word in sent[:sent_length]]
+        sent_vec[:len(embs),:] = np.array(embs)
+        return sent_vec
