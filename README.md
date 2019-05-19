@@ -82,6 +82,9 @@ The MNIST data directory needs to be specified here for testing of the model on 
 ![alt text](https://github.com/comRamona/Neural-Statistician/blob/master/omniglot/figures/oneshot.png "1shotdig")
 ![alt text](https://github.com/comRamona/Neural-Statistician/blob/master/omniglot/figures/1shotomni.png "1shotomni")
 
+#### YouTube Faces
+![alt text](https://github.com/comRamona/Neural-Statistician/blob/master/faces/ezgif.com-gif-maker.gif "faces gif")
+
 ## Contact
 Please use the [issues tracker](https://github.com/conormdurkan/neural-statistician/issues) for questions, problems etc.
 
