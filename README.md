@@ -74,17 +74,23 @@ The MNIST data directory needs to be specified here for testing of the model on 
 
 #### Spatial MNIST
 ##### Inputs
-![alt text](https://github.com/comRamona/Neural-Statistician/blob/master/spatial/input.png "Inputs")
+<p align="center">
+  <img width="460" height="35.5" src="https://github.com/comRamona/Neural-Statistician/blob/master/spatial/input.png">
+</p>
 ##### Outputs after 1,10,50 and 100 epochs
-![alt text](https://github.com/comRamona/Neural-Statistician/blob/master/spatial/ezgif.com-gif-maker.gif "outputs")
+<p align="center">
+  <img width="460" height="35.5" src="https://github.com/comRamona/Neural-Statistician/blob/master/spatial/ezgif.com-gif-maker.gif">
+</p>
 
 #### Omniglot
-![alt text](https://github.com/comRamona/Neural-Statistician/blob/master/omniglot/figures/oneshot.png "1shotdig")
-![alt text](https://github.com/comRamona/Neural-Statistician/blob/master/omniglot/figures/1shotomni.png "1shotomni")
+<p align="center">
+  <img width="460" height="94.5" src="https://github.com/comRamona/Neural-Statistician/blob/master/omniglot/figures/oneshot.png">
+</p>
+<p align="center">
+  <img width="460" height="94.5" src="https://github.com/comRamona/Neural-Statistician/blob/master/omniglot/figures/1shotomni.png">
+</p>
 
 #### YouTube Faces
-![alt text](https://github.com/comRamona/Neural-Statistician/blob/master/faces/ezgif.com-gif-maker.gif "faces gif")
-
 <p align="center">
   <img width="460" height="460" src="https://github.com/comRamona/Neural-Statistician/blob/master/faces/ezgif.com-gif-maker.gif">
 </p>
