@@ -66,6 +66,11 @@ The MNIST data directory needs to be specified here for testing of the model on 
 
 - ```python facesrun.py --output-dir=output --data-dir=faces/64```
 
+## Results
+#### Synthetic
+![alt text](https://github.com/comRamona/Neural-Statistician/blob/master/synthetic/output/figures/cluster2.png "Cluster")
+![alt text](https://github.com/comRamona/Neural-Statistician/blob/master/synthetic/output/figures/mean2.png "Cluster")
+![alt text](https://github.com/comRamona/Neural-Statistician/blob/master/synthetic/output/figures/variance2.png "Cluster")
 
 ## Contact
 Please use the [issues tracker](https://github.com/conormdurkan/neural-statistician/issues) for questions, problems etc.
