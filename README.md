@@ -85,6 +85,10 @@ The MNIST data directory needs to be specified here for testing of the model on 
 #### YouTube Faces
 ![alt text](https://github.com/comRamona/Neural-Statistician/blob/master/faces/ezgif.com-gif-maker.gif "faces gif")
 
+<p align="center">
+  <img width="460" height="300" src="https://github.com/comRamona/Neural-Statistician/blob/master/faces/ezgif.com-gif-maker.gif">
+</p>
+
 ## Contact
 Please use the [issues tracker](https://github.com/conormdurkan/neural-statistician/issues) for questions, problems etc.
 
