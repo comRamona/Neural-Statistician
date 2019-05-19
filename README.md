@@ -68,15 +68,22 @@ The MNIST data directory needs to be specified here for testing of the model on 
 
 ## Results
 #### Synthetic
-![alt text](https://github.com/comRamona/Neural-Statistician/blob/master/synthetic/output/figures/cluster2.png "Cluster")
-![alt text](https://github.com/comRamona/Neural-Statistician/blob/master/synthetic/output/figures/mean2.png "Cluster")
-![alt text](https://github.com/comRamona/Neural-Statistician/blob/master/synthetic/output/figures/variance2.png "Cluster")
+<p align="center">
+  <img width="460" height="460" src="https://github.com/comRamona/Neural-Statistician/blob/master/synthetic/output/figures/cluster2.png">
+</p>
+<p align="left">
+  <img width="460" height="351" src="https://github.com/comRamona/Neural-Statistician/blob/master/synthetic/output/figures/mean2.png">
+</p>
+<p align="right">
+  <img width="460" height="351" src="https://github.com/comRamona/Neural-Statistician/blob/master/synthetic/output/figures/variance2.png">
+</p>
 
 #### Spatial MNIST
 ##### Inputs
 <p align="center">
   <img width="460" height="35.5" src="https://github.com/comRamona/Neural-Statistician/blob/master/spatial/input.png">
 </p>
+
 ##### Outputs after 1,10,50 and 100 epochs
 <p align="center">
   <img width="460" height="35.5" src="https://github.com/comRamona/Neural-Statistician/blob/master/spatial/ezgif.com-gif-maker.gif">
