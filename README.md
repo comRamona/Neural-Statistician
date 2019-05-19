@@ -86,7 +86,7 @@ The MNIST data directory needs to be specified here for testing of the model on 
 ![alt text](https://github.com/comRamona/Neural-Statistician/blob/master/faces/ezgif.com-gif-maker.gif "faces gif")
 
 <p align="center">
-  <img width="460" height="300" src="https://github.com/comRamona/Neural-Statistician/blob/master/faces/ezgif.com-gif-maker.gif">
+  <img width="460" height="460" src="https://github.com/comRamona/Neural-Statistician/blob/master/faces/ezgif.com-gif-maker.gif">
 </p>
 
 ## Contact
