@@ -72,10 +72,10 @@ The MNIST data directory needs to be specified here for testing of the model on 
   <img width="460" height="460" src="https://github.com/comRamona/Neural-Statistician/blob/master/synthetic/output/figures/cluster2.png">
 </p>
 <p align="left">
-  <img width="460" height="351" src="https://github.com/comRamona/Neural-Statistician/blob/master/synthetic/output/figures/mean2.png">
+  <img width="230" height="175" src="https://github.com/comRamona/Neural-Statistician/blob/master/synthetic/output/figures/mean2.png">
 </p>
 <p align="right">
-  <img width="460" height="351" src="https://github.com/comRamona/Neural-Statistician/blob/master/synthetic/output/figures/variance2.png">
+  <img width="230" height="175" src="https://github.com/comRamona/Neural-Statistician/blob/master/synthetic/output/figures/variance2.png">
 </p>
 
 #### Spatial MNIST
