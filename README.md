@@ -72,6 +72,12 @@ The MNIST data directory needs to be specified here for testing of the model on 
 ![alt text](https://github.com/comRamona/Neural-Statistician/blob/master/synthetic/output/figures/mean2.png "Cluster")
 ![alt text](https://github.com/comRamona/Neural-Statistician/blob/master/synthetic/output/figures/variance2.png "Cluster")
 
+#### Spatial MNIST
+##### Inputs
+![alt text](https://github.com/comRamona/Neural-Statistician/blob/master/spatial/input.png "Inputs")
+##### Outputs after 1,10,50 and 100 epochs
+![alt text](https://github.com/comRamona/Neural-Statistician/blob/master/spatial/ezgif.com-gif-maker.gif "outputs")
+
 ## Contact
 Please use the [issues tracker](https://github.com/conormdurkan/neural-statistician/issues) for questions, problems etc.
 
