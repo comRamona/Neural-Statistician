@@ -78,6 +78,10 @@ The MNIST data directory needs to be specified here for testing of the model on 
 ##### Outputs after 1,10,50 and 100 epochs
 ![alt text](https://github.com/comRamona/Neural-Statistician/blob/master/spatial/ezgif.com-gif-maker.gif "outputs")
 
+#### Omniglot
+![alt text](https://github.com/comRamona/Neural-Statistician/blob/master/omniglot/figures/oneshot.png "1shotdig")
+![alt text](https://github.com/comRamona/Neural-Statistician/blob/master/omniglot/figures/1shotomni.png "1shotomni")
+
 ## Contact
 Please use the [issues tracker](https://github.com/conormdurkan/neural-statistician/issues) for questions, problems etc.
 
